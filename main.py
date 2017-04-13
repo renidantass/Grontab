@@ -23,16 +23,19 @@ class MainWindow(wx.Frame):
         menubar.Append(filemenu, '&Arquivo')
         menubar.Append(helpmenu, '&Ajuda')
         self.SetMenuBar(menubar)
-        self.Bind(wx.EVT_MENU, self.OnQuit, exit_menu)
-        self.Bind(wx.EVT_MENU, self.CreateTask, create_menu)
+        self.Bind(wx.EVT_MENU, self.on_quit, exit_menu)
+        self.Bind(wx.EVT_MENU, self.create_task, create_menu)
+        self.Bind(wx.EVT_MENU, self.show_credits, credits_menu)
         self.current_crons = self.current_cron()
         sizer = wx.BoxSizer(wx.VERTICAL)
         if self.current_crons > 0:
-            txt = wx.StaticText(self, label="Você tem tarefas já feitas")
+            msg = "\nVocê tem tarefa(s) já feita(s)"
+            txt = wx.StaticText(self, label="%s" % (msg))
             txt.SetFont(default_font)
             sizer.Add(txt, 0, wx.CENTER, 0)
         else:
-            txt = wx.StaticText(self, label="Você ainda não tem tarefas. Faça alguma!")
+            msg = "\nVocê ainda não tem tarefa(s). Faça alguma!"
+            txt = wx.StaticText(self, label="%s" % (msg))
             txt.SetFont(default_font)
             sizer.Add(txt, 0, wx.CENTER, 0)
         wsize = self.GetSize()[1]/1.5
@@ -50,11 +53,41 @@ class MainWindow(wx.Frame):
         except CalledProcessError:
             return None
 
-    def CreateTask(self, e):
+    def create_task(self, e):
         pass
 
-    def OnQuit(self, e):
+    def on_quit(self, e):
         self.Close()
+
+    def show_credits(self, e):
+        license = """ Copyright (c) 2017 Reni A. Dantas
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE. """
+        credits_info = wx.AboutDialogInfo()
+        credits_info.SetName("Grontab")
+        credits_info.SetVersion("0.0.1")
+        credits_info.SetDescription("Um programa que visa facilitar o uso da ferramenta cron.")
+        credits_info.SetCopyright("(C) 2017")
+        credits_info.SetWebSite("github.com/renix1/Grontab")
+        credits_info.SetLicense(license)
+        credits_info.AddDeveloper("Reni A. Dantas")
+        wx.AboutBox(credits_info)
 
 if __name__ == '__main__':
     if geteuid() == 0:

@@ -28,19 +28,44 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.show_credits, credits_menu)
         self.current_crons = self.current_cron()
         sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer_one = wx.BoxSizer(wx.VERTICAL)
+        sizer_two = wx.BoxSizer(wx.HORIZONTAL)
+        sizer.AddSizer(sizer_one)
+        sizer.AddSizer(sizer_two)
         if self.current_crons > 0:
-            msg = "\nVocê tem tarefa(s) já feita(s)"
+            msg = "\n\t\tVocê tem tarefa(s) já feita(s)"
             txt = wx.StaticText(self, label="%s" % (msg))
             txt.SetFont(default_font)
-            sizer.Add(txt, 0, wx.CENTER, 0)
+            sizer_one.Add(txt, 0, wx.CENTER, 0)
         else:
-            msg = "\nVocê ainda não tem tarefa(s). Faça alguma!"
+            msg = "\n\t\tVocê ainda não tem tarefa(s). Faça alguma!"
             txt = wx.StaticText(self, label="%s" % (msg))
             txt.SetFont(default_font)
-            sizer.Add(txt, 0, wx.CENTER, 0)
-        wsize = self.GetSize()[1]/1.5
+            sizer_one.Add(txt, 0, wx.CENTER , 0)
+        wsize = self.GetSize()[1]
         line = wx.StaticLine(self, size=(wsize, 10))
-        sizer.Add(line, 0, wx.CENTER, 1)
+        sizer_one.Add(line, 0, wx.CENTER, 1)
+        h = wx.StaticText(self, label="Hora")
+        hora_escolha = wx.SpinCtrl(self, value='0', min=0, max=24)
+        sizer_two.Add(h, 0, wx.CENTER, 1)
+        sizer_two.Add(hora_escolha, 0, wx.CENTER, 2)
+        m = wx.StaticText(self, label="Minuto")
+        min_escolha = wx.SpinCtrl(self, value='0', min=0, max=60)
+        sizer_two.Add(m, 0, wx.CENTER, 2)
+        sizer_two.Add(min_escolha, 0, wx.CENTER, 2)
+        d = wx.StaticText(self, label="Dia")
+        dia_escolha = wx.SpinCtrl(self, value='1', min=1, max=31)
+        sizer_two.Add(d, 0, wx.CENTER, 3)
+        sizer_two.Add(dia_escolha, 0, wx.CENTER, 3)
+        scp = wx.StaticText(self, label="Script/comando")
+        scp_cmd = wx.TextCtrl(self, size=(wsize-25, 30))
+        sizer.Add(scp, 0, wx.CENTER, 4)
+        sizer.Add(scp_cmd, 0, wx.CENTER, 4)
+        tornar = wx.CheckBox(self, label="Tornar executável")
+        sizer.Add(tornar, 0, wx.CENTER, 5)
+        btn = wx.Button(self, label="Criar tarefa")
+        sizer.Add(btn, 0, wx.CENTER, 5)
+        self.SetSizerAndFit(sizer)
         self.SetSizer(sizer)
         self.Show()
 

@@ -8,8 +8,11 @@ basicConfig(level=INFO)
 
 class MainWindow(wx.Frame):
     def __init__(self, parent, title,  size=None):
-        super(MainWindow, self).__init__(parent, title=title, size=(450, 600))
+        super(MainWindow, self).__init__(parent, title=title, style=wx.MINIMIZE_BOX | wx.CAPTION | wx.CLOSE_BOX)
         self.Centre()
+        self.SetMinSize((550, 250))
+        self.SetMaxSize((551, 251))
+        wsize = self.GetSize()[1]
         ID_ANOTHER = 0
         ico = wx.IconLocation(r'/usr/share/icons/tasks.png')
         default_font = wx.Font(10, wx.DEFAULT, wx.NORMAL, wx.BOLD)
@@ -33,18 +36,15 @@ class MainWindow(wx.Frame):
         sizer.AddSizer(sizer_one)
         sizer.AddSizer(sizer_two)
         if self.current_crons > 0:
-            msg = "\n\t\tVocê tem tarefa(s) já feita(s)"
+            msg = "\t\t\tVocê tem tarefa(s) já feita(s)\n"
             txt = wx.StaticText(self, label="%s" % (msg))
             txt.SetFont(default_font)
-            sizer_one.Add(txt, 0, wx.CENTER, 0)
+            sizer_one.Add(txt, 0, wx.ALIGN_CENTER, 0)
         else:
-            msg = "\n\t\tVocê ainda não tem tarefa(s). Faça alguma!"
+            msg = "\t\t\tVocê ainda não tem tarefa(s). Faça alguma!\n"
             txt = wx.StaticText(self, label="%s" % (msg))
             txt.SetFont(default_font)
-            sizer_one.Add(txt, 0, wx.CENTER , 0)
-        wsize = self.GetSize()[1]
-        line = wx.StaticLine(self, size=(wsize, 10))
-        sizer_one.Add(line, 0, wx.CENTER, 1)
+            sizer_one.Add(txt, 0, wx.ALIGN_CENTER , 0)
         h = wx.StaticText(self, label="Hora")
         hora_escolha = wx.SpinCtrl(self, value='0', min=0, max=24)
         sizer_two.Add(h, 0, wx.CENTER, 1)
@@ -57,15 +57,23 @@ class MainWindow(wx.Frame):
         dia_escolha = wx.SpinCtrl(self, value='1', min=1, max=31)
         sizer_two.Add(d, 0, wx.CENTER, 3)
         sizer_two.Add(dia_escolha, 0, wx.CENTER, 3)
+        mes = wx.StaticText(self, label="Mês")
+        mes_escolha = wx.SpinCtrl(self, value='1', min=1, max=12)
+        sizer_two.Add(mes, 0, wx.CENTER, 3)
+        sizer_two.Add(mes_escolha, 0, wx.CENTER, 3)
+        dia_semana = wx.StaticText(self, label="Dia da semana")
+        dia_semana_escolha = wx.SpinCtrl(self, value='1', min=1, max=7)
+        sizer.Add(dia_semana, 0, wx.CENTER, 4)
+        sizer.Add(dia_semana_escolha,0, wx.CENTER, 4)
         scp = wx.StaticText(self, label="Script/comando")
-        scp_cmd = wx.TextCtrl(self, size=(wsize-25, 30))
+        self.scp_cmd = wx.TextCtrl(self, size=(wsize-25, 30))
         sizer.Add(scp, 0, wx.CENTER, 4)
-        sizer.Add(scp_cmd, 0, wx.CENTER, 4)
-        tornar = wx.CheckBox(self, label="Tornar executável")
-        sizer.Add(tornar, 0, wx.CENTER, 5)
+        sizer.Add(self.scp_cmd, 0, wx.CENTER, 4)
+        self.tornar = wx.CheckBox(self, label="Tornar executável")
+        sizer.Add(self.tornar, 0, wx.CENTER, 5)
         btn = wx.Button(self, label="Criar tarefa")
+        self.Bind(wx.EVT_BUTTON, self.make_executable, btn)
         sizer.Add(btn, 0, wx.CENTER, 5)
-        self.SetSizerAndFit(sizer)
         self.SetSizer(sizer)
         self.Show()
 
@@ -80,6 +88,16 @@ class MainWindow(wx.Frame):
 
     def create_task(self, e):
         pass
+
+    def make_executable(self, e):
+        valor = self.tornar.GetValue()
+        cmd = self.scp_cmd.GetValue()
+        if valor:
+            try:
+                executable = check_output(['chmod', '+x', cmd])
+                info(executable)
+            except CalledProcessError:
+                wx.MessageDialog(self, "Arquivo não encontrado", "Erro", wx.OK_DEFAULT | wx.ICON_ERROR).ShowModal()
 
     def on_quit(self, e):
         self.Close()

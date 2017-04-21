@@ -2,7 +2,7 @@
 import wx
 from logging import basicConfig, info, INFO
 from subprocess import check_output, CalledProcessError
-from os import geteuid
+from os import geteuid, system
 
 basicConfig(level=INFO)
 
@@ -36,35 +36,35 @@ class MainWindow(wx.Frame):
         sizer.AddSizer(sizer_one)
         sizer.AddSizer(sizer_two)
         if self.current_crons > 0:
-            msg = "\t\t\tVocê tem tarefa(s) já feita(s)\n"
-            txt = wx.StaticText(self, label="%s" % (msg))
-            txt.SetFont(default_font)
-            sizer_one.Add(txt, 0, wx.ALIGN_CENTER, 0)
+            msg = "\t\t\t\t\tVocê tem tarefa(s) já feita(s)\n"
+            self.txt = wx.StaticText(self, label="%s" % (msg))
+            self.txt.SetFont(default_font)
+            sizer_one.Add(self.txt, 0, wx.ALIGN_CENTER, 0)
         else:
             msg = "\t\t\tVocê ainda não tem tarefa(s). Faça alguma!\n"
-            txt = wx.StaticText(self, label="%s" % (msg))
-            txt.SetFont(default_font)
-            sizer_one.Add(txt, 0, wx.ALIGN_CENTER , 0)
+            self.txt = wx.StaticText(self, label="%s" % (msg))
+            self.txt.SetFont(default_font)
+            sizer_one.Add(self.txt, 0, wx.ALIGN_CENTER , 0)
         h = wx.StaticText(self, label="Hora")
-        hora_escolha = wx.SpinCtrl(self, value='0', min=0, max=24)
+        self.hora_escolha = wx.SpinCtrl(self, value='0', min=0, max=24)
         sizer_two.Add(h, 0, wx.CENTER, 1)
-        sizer_two.Add(hora_escolha, 0, wx.CENTER, 2)
+        sizer_two.Add(self.hora_escolha, 0, wx.CENTER, 2)
         m = wx.StaticText(self, label="Minuto")
-        min_escolha = wx.SpinCtrl(self, value='0', min=0, max=60)
+        self.min_escolha = wx.SpinCtrl(self, value='0', min=0, max=60)
         sizer_two.Add(m, 0, wx.CENTER, 2)
-        sizer_two.Add(min_escolha, 0, wx.CENTER, 2)
+        sizer_two.Add(self.min_escolha, 0, wx.CENTER, 2)
         d = wx.StaticText(self, label="Dia")
-        dia_escolha = wx.SpinCtrl(self, value='1', min=1, max=31)
+        self.dia_escolha = wx.SpinCtrl(self, value='1', min=1, max=31)
         sizer_two.Add(d, 0, wx.CENTER, 3)
-        sizer_two.Add(dia_escolha, 0, wx.CENTER, 3)
+        sizer_two.Add(self.dia_escolha, 0, wx.CENTER, 3)
         mes = wx.StaticText(self, label="Mês")
-        mes_escolha = wx.SpinCtrl(self, value='1', min=1, max=12)
+        self.mes_escolha = wx.SpinCtrl(self, value='1', min=1, max=12)
         sizer_two.Add(mes, 0, wx.CENTER, 3)
-        sizer_two.Add(mes_escolha, 0, wx.CENTER, 3)
+        sizer_two.Add(self.mes_escolha, 0, wx.CENTER, 3)
         dia_semana = wx.StaticText(self, label="Dia da semana")
-        dia_semana_escolha = wx.SpinCtrl(self, value='1', min=1, max=7)
+        self.dia_semana_escolha = wx.SpinCtrl(self, value='1', min=1, max=7)
         sizer.Add(dia_semana, 0, wx.CENTER, 4)
-        sizer.Add(dia_semana_escolha,0, wx.CENTER, 4)
+        sizer.Add(self.dia_semana_escolha,0, wx.CENTER, 4)
         scp = wx.StaticText(self, label="Script/comando")
         self.scp_cmd = wx.TextCtrl(self, size=(wsize-25, 30))
         sizer.Add(scp, 0, wx.CENTER, 4)
@@ -73,6 +73,7 @@ class MainWindow(wx.Frame):
         sizer.Add(self.tornar, 0, wx.CENTER, 5)
         btn = wx.Button(self, label="Criar tarefa")
         self.Bind(wx.EVT_BUTTON, self.make_executable, btn)
+        self.Bind(wx.EVT_BUTTON, self.create_task, btn)
         sizer.Add(btn, 0, wx.CENTER, 5)
         self.SetSizer(sizer)
         self.Show()
@@ -81,13 +82,20 @@ class MainWindow(wx.Frame):
         """ Checando apenas tarefas do usuário root """
         try:
             tasks = check_output(['ls', '-l', '/var/spool/cron/crontabs'])
+            tasks = tasks[:tasks.find('-'):]
             tasks = int(tasks.replace('total ', '')) if 'total' in tasks else None
             return tasks
         except CalledProcessError:
             return None
 
     def create_task(self, e):
-        pass
+        cmd = 'sudo echo "%s %s %s %s %s %s" > /var/spool/cron/crontabs/root' % (self.min_escolha.GetValue(), 
+                self.hora_escolha.GetValue(), self.dia_escolha.GetValue(), self.mes_escolha.GetValue(), self.dia_semana_escolha.GetValue(),
+                self.scp_cmd.GetValue())
+        execution = system(cmd)
+        if execution == 0:
+            print("Tarefa criada")
+            self.update_status()
 
     def make_executable(self, e):
         valor = self.tornar.GetValue()
@@ -98,6 +106,9 @@ class MainWindow(wx.Frame):
                 info(executable)
             except CalledProcessError:
                 wx.MessageDialog(self, "Arquivo não encontrado", "Erro", wx.OK_DEFAULT | wx.ICON_ERROR).ShowModal()
+
+    def update_status(self):
+        self.txt.SetLabel("\t\t\t\t\tVocê tem tarefa(s) já feita(s)\n")
 
     def on_quit(self, e):
         self.Close()
